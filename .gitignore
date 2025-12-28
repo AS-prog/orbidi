@@ -1,1 +1,21 @@
+# Python / uv
+__pycache__/
+*.pyc
+.venv/
+.env
+
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.backup
+.terraform.lock.hcl
+
+# dbt
+dbt_project/target/
+dbt_project/logs/
+dbt_project/dbt_packages/
+
+# OS / IDE
 .DS_Store
+.vscode/
+.idea/
