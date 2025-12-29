@@ -148,8 +148,32 @@ resource "google_bigquery_table" "taxis_external" {
   deletion_protection = false
   description         = "External table reading taxi trips data from Parquet with Hive-style daily partitioning"
 
+  # Schema explícito para evitar errores de autodetect con tipos STRING/INT
+  schema = jsonencode([
+    { name = "unique_key", type = "STRING", mode = "NULLABLE" },
+    { name = "taxi_id", type = "STRING", mode = "NULLABLE" },
+    { name = "trip_start_timestamp", type = "TIMESTAMP", mode = "NULLABLE" },
+    { name = "trip_end_timestamp", type = "TIMESTAMP", mode = "NULLABLE" },
+    { name = "trip_seconds", type = "INTEGER", mode = "NULLABLE" },
+    { name = "trip_miles", type = "FLOAT", mode = "NULLABLE" },
+    { name = "pickup_community_area", type = "INTEGER", mode = "NULLABLE" },
+    { name = "dropoff_community_area", type = "INTEGER", mode = "NULLABLE" },
+    { name = "fare", type = "FLOAT", mode = "NULLABLE" },
+    { name = "tips", type = "FLOAT", mode = "NULLABLE" },
+    { name = "tolls", type = "FLOAT", mode = "NULLABLE" },
+    { name = "extras", type = "FLOAT", mode = "NULLABLE" },
+    { name = "trip_total", type = "FLOAT", mode = "NULLABLE" },
+    { name = "payment_type", type = "STRING", mode = "NULLABLE" },
+    { name = "company", type = "STRING", mode = "NULLABLE" },
+    { name = "pickup_latitude", type = "FLOAT", mode = "NULLABLE" },
+    { name = "pickup_longitude", type = "FLOAT", mode = "NULLABLE" },
+    { name = "dropoff_latitude", type = "FLOAT", mode = "NULLABLE" },
+    { name = "dropoff_longitude", type = "FLOAT", mode = "NULLABLE" },
+    { name = "loaded_at", type = "TIMESTAMP", mode = "NULLABLE" }
+  ])
+
   external_data_configuration {
-    autodetect    = true
+    autodetect    = false
     source_format = "PARQUET"
     source_uris   = ["gs://${module.cloud_functions.data_landing_bucket}/taxis/*"]
 
