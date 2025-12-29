@@ -23,7 +23,12 @@ variable "labels" {
 # Function Source
 # ------------------------------------------------------------------------------
 variable "function_source_dir" {
-  description = "Local directory containing the function source code"
+  description = "Local directory containing the weather function source code"
+  type        = string
+}
+
+variable "taxis_function_source_dir" {
+  description = "Local directory containing the taxis function source code"
   type        = string
 }
 
@@ -61,7 +66,46 @@ variable "weather_function_max_instances" {
 }
 
 # ------------------------------------------------------------------------------
-# Environment Variables for Function
+# Taxis Function Configuration
+# ------------------------------------------------------------------------------
+variable "taxis_function_name" {
+  description = "Name of the taxis ingestion function"
+  type        = string
+  default     = "ingest-taxis"
+}
+
+variable "taxis_function_entry_point" {
+  description = "Entry point for the taxis function"
+  type        = string
+  default     = "ingest_taxis"
+}
+
+variable "taxis_function_memory" {
+  description = "Memory allocation for the taxis function (MB)"
+  type        = string
+  default     = "1Gi"
+}
+
+variable "taxis_function_timeout" {
+  description = "Timeout for the taxis function (seconds)"
+  type        = number
+  default     = 540
+}
+
+variable "taxis_function_max_instances" {
+  description = "Maximum number of taxis function instances"
+  type        = number
+  default     = 3
+}
+
+variable "taxis_offset_days" {
+  description = "Offset days for taxis daily ingestion (e.g., 730 means process date from ~2 years ago for 2023 data)"
+  type        = string
+  default     = "730"
+}
+
+# ------------------------------------------------------------------------------
+# Environment Variables for Weather Function
 # ------------------------------------------------------------------------------
 variable "gcp_project_env" {
   description = "GCP_PROJECT environment variable for the function"

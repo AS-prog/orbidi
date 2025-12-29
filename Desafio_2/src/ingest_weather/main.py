@@ -44,8 +44,8 @@ GCS_BUCKET = os.environ.get("GCS_BUCKET", "orbidi-challenge-data-landing")
 DEFAULT_START_DATE = os.environ.get("WEATHER_START_DATE", "2023-06-01")
 DEFAULT_END_DATE = os.environ.get("WEATHER_END_DATE", "2023-12-31")
 
-# Offset para modo daily_offset (2025-12-30 - 2024-01-01 = 364 días)
-OFFSET_DAYS = int(os.environ.get("OFFSET_DAYS", "364"))
+# Offset para modo daily_offset (2025-12-29 - 730 = 2023-12-29)
+OFFSET_DAYS = int(os.environ.get("OFFSET_DAYS", "730"))
 
 # Coordenadas de Chicago
 CHICAGO_LAT = 41.8781

@@ -42,3 +42,41 @@ resource "google_cloud_scheduler_job" "weather_ingestion" {
     ]
   }
 }
+
+# ------------------------------------------------------------------------------
+# Cloud Scheduler Job para Taxis Ingestion
+# ------------------------------------------------------------------------------
+resource "google_cloud_scheduler_job" "taxis_ingestion" {
+  name        = var.taxis_job_name
+  project     = var.project_id
+  region      = var.region
+  description = "Triggers taxi data ingestion daily using daily_offset mode"
+
+  schedule  = var.taxis_schedule
+  time_zone = var.taxis_timezone
+
+  attempt_deadline = var.taxis_attempt_deadline
+
+  retry_config {
+    retry_count          = var.retry_count
+    min_backoff_duration = "5s"
+    max_backoff_duration = "300s"
+    max_doublings        = 3
+  }
+
+  http_target {
+    http_method = "GET"
+    uri         = "${var.taxis_function_uri}?mode=daily_offset"
+
+    oidc_token {
+      service_account_email = var.taxis_function_sa
+      audience              = var.taxis_function_uri
+    }
+  }
+
+  lifecycle {
+    ignore_changes = [
+      # Ignore changes to paused state (can be changed manually)
+    ]
+  }
+}

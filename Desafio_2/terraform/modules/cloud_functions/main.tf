@@ -160,3 +160,78 @@ resource "google_cloud_run_service_iam_member" "invoker" {
   role     = "roles/run.invoker"
   member   = "allUsers"
 }
+
+# ==============================================================================
+# Cloud Function Gen2: ingest_taxis
+# ==============================================================================
+
+# ------------------------------------------------------------------------------
+# Zip and Upload Taxis Function Source
+# ------------------------------------------------------------------------------
+data "archive_file" "taxis_function_source" {
+  type        = "zip"
+  source_dir  = var.taxis_function_source_dir
+  output_path = "${path.module}/tmp/ingest_taxis.zip"
+}
+
+resource "google_storage_bucket_object" "taxis_function_zip" {
+  name   = "ingest_taxis/${data.archive_file.taxis_function_source.output_md5}.zip"
+  bucket = google_storage_bucket.function_source.name
+  source = data.archive_file.taxis_function_source.output_path
+}
+
+# ------------------------------------------------------------------------------
+# Cloud Function Gen2: ingest_taxis
+# ------------------------------------------------------------------------------
+resource "google_cloudfunctions2_function" "ingest_taxis" {
+  name        = var.taxis_function_name
+  project     = var.project_id
+  location    = var.region
+  description = "Ingests Chicago taxi data from BigQuery Public Dataset to GCS (daily incremental)"
+
+  build_config {
+    runtime     = "python311"
+    entry_point = var.taxis_function_entry_point
+
+    source {
+      storage_source {
+        bucket = google_storage_bucket.function_source.name
+        object = google_storage_bucket_object.taxis_function_zip.name
+      }
+    }
+  }
+
+  service_config {
+    max_instance_count    = var.taxis_function_max_instances
+    min_instance_count    = 0
+    available_memory      = var.taxis_function_memory
+    timeout_seconds       = var.taxis_function_timeout
+    service_account_email = local.service_account_email
+
+    environment_variables = {
+      GCP_PROJECT = local.gcp_project
+      GCS_BUCKET  = google_storage_bucket.data_landing.name
+      OFFSET_DAYS = var.taxis_offset_days
+    }
+  }
+
+  labels = var.labels
+
+  depends_on = [
+    google_project_iam_member.function_bq_editor,
+    google_project_iam_member.function_bq_job_user,
+    google_project_iam_member.function_storage_admin,
+    google_storage_bucket.data_landing,
+  ]
+}
+
+# ------------------------------------------------------------------------------
+# IAM: Allow unauthenticated invocations for Taxis (for testing, remove in production)
+# ------------------------------------------------------------------------------
+resource "google_cloud_run_service_iam_member" "taxis_invoker" {
+  project  = var.project_id
+  location = var.region
+  service  = google_cloudfunctions2_function.ingest_taxis.name
+  role     = "roles/run.invoker"
+  member   = "allUsers"
+}
