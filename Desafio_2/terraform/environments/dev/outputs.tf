@@ -31,30 +31,55 @@ output "weather_daily_table" {
 }
 
 # ==============================================================================
-# PASO 2: Cloud Functions - Descomentar cuando se habilite el módulo
+# Cloud Functions
 # ==============================================================================
-# output "weather_trigger_topic" {
-#   description = "Pub/Sub topic to trigger weather ingestion"
-#   value       = module.cloud_functions.weather_trigger_topic_name
-# }
-#
-# output "dbt_trigger_topic" {
-#   description = "Pub/Sub topic to trigger dbt"
-#   value       = module.cloud_functions.dbt_trigger_topic_name
-# }
-#
-# output "functions_source_bucket" {
-#   description = "GCS bucket for function source code"
-#   value       = module.cloud_functions.functions_source_bucket
-# }
+output "weather_function_name" {
+  description = "Name of the weather ingestion function"
+  value       = module.cloud_functions.function_name
+}
+
+output "weather_function_uri" {
+  description = "HTTPS endpoint of the weather function"
+  value       = module.cloud_functions.function_uri
+}
+
+output "weather_function_sa" {
+  description = "Service account used by the weather function"
+  value       = module.cloud_functions.function_service_account
+}
+
+output "functions_source_bucket" {
+  description = "GCS bucket for function source code"
+  value       = module.cloud_functions.source_bucket
+}
+
+output "data_landing_bucket" {
+  description = "GCS bucket for data landing (Parquet files)"
+  value       = module.cloud_functions.data_landing_bucket
+}
+
+output "weather_external_table" {
+  description = "External table for weather data (reads from Parquet)"
+  value       = "${var.project_id}.${module.bigquery.raw_data_dataset_id}.${google_bigquery_table.weather_external.table_id}"
+}
 
 # ==============================================================================
-# PASO 3: Cloud Scheduler - Descomentar cuando se habilite el módulo
+# Cloud Scheduler
 # ==============================================================================
-# output "scheduler_job_name" {
-#   description = "Name of the Cloud Scheduler job"
-#   value       = module.cloud_scheduler.job_name
-# }
+output "scheduler_job_name" {
+  description = "Name of the Cloud Scheduler job"
+  value       = module.cloud_scheduler.job_name
+}
+
+output "scheduler_schedule" {
+  description = "Cron schedule of the job"
+  value       = module.cloud_scheduler.schedule
+}
+
+output "scheduler_timezone" {
+  description = "Timezone of the job"
+  value       = module.cloud_scheduler.timezone
+}
 
 # ==============================================================================
 # PASO 4: IAM - Descomentar cuando se habilite el módulo

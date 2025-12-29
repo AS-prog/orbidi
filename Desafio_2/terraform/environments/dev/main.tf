@@ -46,13 +46,16 @@ locals {
 resource "google_project_service" "apis" {
   for_each = toset([
     "bigquery.googleapis.com",
-    # Las siguientes APIs se habilitarán en pasos posteriores:
-    # "cloudfunctions.googleapis.com",
-    # "cloudscheduler.googleapis.com",
-    # "pubsub.googleapis.com",
-    # "storage.googleapis.com",
-    # "cloudbuild.googleapis.com",
-    # "run.googleapis.com",
+    "bigquerydatatransfer.googleapis.com",
+    "iam.googleapis.com",
+    # Cloud Functions y dependencias
+    "cloudfunctions.googleapis.com",
+    "cloudbuild.googleapis.com",
+    "run.googleapis.com",
+    "storage.googleapis.com",
+    "artifactregistry.googleapis.com",
+    # Cloud Scheduler
+    "cloudscheduler.googleapis.com",
   ])
 
   project                    = var.project_id
@@ -75,38 +78,80 @@ module "bigquery" {
   depends_on = [google_project_service.apis]
 }
 
-# ==============================================================================
-# PASO 2: Cloud Functions (Pub/Sub topics + GCS bucket)
-# Descomentar cuando se complete el Paso 1
-# ==============================================================================
-# module "cloud_functions" {
-#   source = "../../modules/cloud_functions"
-#
-#   project_id = var.project_id
-#   region     = var.region
-#   labels     = local.labels
-#
-#   depends_on = [google_project_service.apis]
-# }
+# ------------------------------------------------------------------------------
+# Module: Cloud Functions (Weather Ingestion)
+# ------------------------------------------------------------------------------
+module "cloud_functions" {
+  source = "../../modules/cloud_functions"
+
+  project_id          = var.project_id
+  region              = var.region
+  labels              = local.labels
+  function_source_dir = "${path.module}/../../../src/ingest_weather"
+
+  # Weather function configuration
+  weather_function_name    = "ingest-weather"
+  weather_function_memory  = "512M"
+  weather_function_timeout = 300
+
+  # Environment variables
+  weather_start_date = "2023-06-01"
+  weather_end_date   = "2023-12-31"
+
+  depends_on = [
+    google_project_service.apis,
+    module.bigquery
+  ]
+}
+
+# ------------------------------------------------------------------------------
+# BigQuery External Table: weather_daily (reads from Parquet in GCS with Hive partitioning)
+# ------------------------------------------------------------------------------
+resource "google_bigquery_table" "weather_external" {
+  dataset_id          = module.bigquery.raw_data_dataset_id
+  table_id            = "weather_daily_ext"
+  project             = var.project_id
+  deletion_protection = false
+  description         = "External table reading weather data from Parquet with Hive-style daily partitioning"
+
+  external_data_configuration {
+    autodetect    = true
+    source_format = "PARQUET"
+    source_uris   = ["gs://${module.cloud_functions.data_landing_bucket}/weather/*"]
+
+    hive_partitioning_options {
+      mode                     = "AUTO"
+      source_uri_prefix        = "gs://${module.cloud_functions.data_landing_bucket}/weather/"
+      require_partition_filter = false
+    }
+  }
+
+  labels = local.labels
+
+  depends_on = [module.cloud_functions]
+}
 
 # ==============================================================================
-# PASO 3: Cloud Scheduler
-# Descomentar cuando se complete el Paso 2
+# Module: Cloud Scheduler (Weather Ingestion Daily)
 # ==============================================================================
-# module "cloud_scheduler" {
-#   source = "../../modules/cloud_scheduler"
-#
-#   project_id      = var.project_id
-#   region          = var.region
-#   schedule        = var.weather_schedule
-#   timezone        = "America/Chicago"
-#   pubsub_topic_id = module.cloud_functions.weather_trigger_topic_id
-#
-#   depends_on = [
-#     google_project_service.apis,
-#     module.cloud_functions
-#   ]
-# }
+module "cloud_scheduler" {
+  source = "../../modules/cloud_scheduler"
+
+  project_id = var.project_id
+  region     = var.region
+
+  # Job configuration
+  weather_job_name     = "trigger-weather-ingestion"
+  weather_schedule     = "0 3 * * *"  # Daily at 3 AM Madrid time
+  weather_timezone     = "Europe/Madrid"
+  weather_function_uri = module.cloud_functions.function_uri
+  weather_function_sa  = module.cloud_functions.function_service_account
+
+  depends_on = [
+    google_project_service.apis,
+    module.cloud_functions
+  ]
+}
 
 # ==============================================================================
 # PASO 4: IAM
