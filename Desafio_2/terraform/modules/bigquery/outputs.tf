@@ -28,14 +28,6 @@ output "weather_daily_table_id" {
 }
 
 # ------------------------------------------------------------------------------
-# Data Transfer Outputs
+# NOTA: Outputs de Data Transfer eliminados
+# Ahora la ingesta de taxis se hace via Cloud Function
 # ------------------------------------------------------------------------------
-output "taxi_transfer_name" {
-  description = "Name of the taxi data transfer configuration"
-  value       = var.enable_taxi_transfer ? google_bigquery_data_transfer_config.taxi_transfer[0].display_name : null
-}
-
-output "taxi_transfer_id" {
-  description = "ID of the taxi data transfer configuration"
-  value       = var.enable_taxi_transfer ? google_bigquery_data_transfer_config.taxi_transfer[0].name : null
-}
