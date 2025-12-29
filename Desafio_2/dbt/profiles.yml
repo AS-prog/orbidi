@@ -1,0 +1,12 @@
+chicago_taxi_weather:
+  target: dev
+  outputs:
+    dev:
+      type: bigquery
+      method: oauth  # Usa Application Default Credentials
+      project: orbidi-challenge
+      dataset: silver_data  # Dataset por defecto
+      location: EU
+      threads: 1
+      timeout_seconds: 300
+      priority: interactive

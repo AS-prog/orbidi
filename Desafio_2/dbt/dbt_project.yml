@@ -1,0 +1,27 @@
+name: 'chicago_taxi_weather'
+version: '1.0.0'
+config-version: 2
+
+profile: 'chicago_taxi_weather'
+
+model-paths: ["models"]
+analysis-paths: ["analyses"]
+test-paths: ["tests"]
+seed-paths: ["seeds"]
+macro-paths: ["macros"]
+snapshot-paths: ["snapshots"]
+
+clean-targets:
+  - "target"
+  - "dbt_packages"
+
+models:
+  chicago_taxi_weather:
+    staging:
+      +materialized: ephemeral
+    silver:
+      +materialized: table
+      +schema: silver_data
+    analytics:
+      +materialized: table
+      +schema: analytics

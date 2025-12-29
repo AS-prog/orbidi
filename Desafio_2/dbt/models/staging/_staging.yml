@@ -1,0 +1,61 @@
+version: 2
+
+sources:
+  - name: raw_data
+    database: orbidi-challenge
+    schema: raw_data
+    description: "Bronze layer - Raw data from ingestion pipelines"
+    tables:
+      - name: taxi_trips_ext
+        description: "Chicago taxi trips data (External Table from GCS)"
+        columns:
+          - name: unique_key
+            description: "Unique identifier for the trip"
+          - name: trip_start_timestamp
+            description: "Trip start time"
+          - name: trip_end_timestamp
+            description: "Trip end time"
+          - name: trip_seconds
+            description: "Duration in seconds"
+          - name: trip_miles
+            description: "Distance in miles"
+          - name: fare
+            description: "Base fare amount"
+          - name: tips
+            description: "Tip amount"
+          - name: tolls
+            description: "Toll charges"
+          - name: extras
+            description: "Extra charges"
+          - name: trip_total
+            description: "Total trip cost"
+          - name: payment_type
+            description: "Payment method"
+          - name: company
+            description: "Taxi company"
+          - name: taxi_id
+            description: "Taxi identifier"
+          - name: pickup_community_area
+            description: "Pickup area code"
+          - name: dropoff_community_area
+            description: "Dropoff area code"
+
+      - name: weather_daily_ext
+        description: "Daily weather data for Chicago (External Table from GCS)"
+        columns:
+          - name: date
+            description: "Date of weather record"
+          - name: temperature_mean
+            description: "Mean temperature (Celsius)"
+          - name: temperature_max
+            description: "Max temperature (Celsius)"
+          - name: temperature_min
+            description: "Min temperature (Celsius)"
+          - name: precipitation_sum
+            description: "Total precipitation (mm)"
+          - name: rain_sum
+            description: "Total rain (mm)"
+          - name: snowfall_sum
+            description: "Total snowfall (cm)"
+          - name: wind_speed_max
+            description: "Max wind speed (km/h)"

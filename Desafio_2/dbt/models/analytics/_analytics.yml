@@ -1,0 +1,21 @@
+version: 2
+
+models:
+  - name: taxis_weather_enriched
+    description: "Taxi trips enriched with weather data for analytics"
+    columns:
+      - name: unique_key
+        description: "Unique trip identifier"
+        tests:
+          - unique
+          - not_null
+      - name: date
+        description: "Trip date"
+        tests:
+          - not_null
+      - name: temperature_mean_c
+        description: "Mean temperature on trip date"
+      - name: adverse_conditions
+        description: "Whether adverse weather conditions existed"
+      - name: is_valid_trip
+        description: "Whether trip has valid complete data"

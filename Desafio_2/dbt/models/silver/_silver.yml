@@ -1,0 +1,36 @@
+version: 2
+
+models:
+  - name: silver_weather
+    description: "Curated weather data with derived categories"
+    columns:
+      - name: date
+        description: "Date of weather record"
+        tests:
+          - unique
+          - not_null
+      - name: temperature_mean_c
+        description: "Mean temperature in Celsius"
+      - name: temperature_category
+        description: "Temperature category (freezing/cold/mild/warm/hot)"
+      - name: precipitation_category
+        description: "Precipitation category (dry/light_rain/moderate_rain/heavy_rain)"
+      - name: adverse_conditions
+        description: "Flag indicating adverse weather conditions"
+
+  - name: silver_taxis
+    description: "Curated taxi trips with derived metrics"
+    columns:
+      - name: unique_key
+        description: "Unique trip identifier"
+        tests:
+          - unique
+          - not_null
+      - name: date
+        description: "Trip date"
+      - name: time_of_day
+        description: "Time category (morning_rush/midday/evening_rush/night/late_night)"
+      - name: tip_percentage
+        description: "Tip as percentage of fare"
+      - name: is_valid_trip
+        description: "Flag for valid trips with complete data"

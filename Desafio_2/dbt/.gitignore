@@ -1,0 +1,10 @@
+# dbt artifacts
+target/
+dbt_packages/
+logs/
+
+# Compiled SQL
+dbt_modules/
+
+# OS
+.DS_Store
