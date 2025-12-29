@@ -26,3 +26,16 @@ output "weather_daily_table_id" {
   description = "Full table ID for weather_daily"
   value       = "${var.project_id}.${google_bigquery_dataset.raw_data.dataset_id}.${google_bigquery_table.weather_daily.table_id}"
 }
+
+# ------------------------------------------------------------------------------
+# Data Transfer Outputs
+# ------------------------------------------------------------------------------
+output "taxi_transfer_name" {
+  description = "Name of the taxi data transfer configuration"
+  value       = var.enable_taxi_transfer ? google_bigquery_data_transfer_config.taxi_transfer[0].display_name : null
+}
+
+output "taxi_transfer_id" {
+  description = "ID of the taxi data transfer configuration"
+  value       = var.enable_taxi_transfer ? google_bigquery_data_transfer_config.taxi_transfer[0].name : null
+}

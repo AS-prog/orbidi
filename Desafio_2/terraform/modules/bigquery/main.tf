@@ -151,3 +151,79 @@ EOF
 
   labels = var.labels
 }
+
+# ==============================================================================
+# Service Account for Data Transfer
+# ==============================================================================
+resource "google_service_account" "data_transfer" {
+  count = var.enable_taxi_transfer ? 1 : 0
+
+  account_id   = "bq-data-transfer-sa"
+  display_name = "BigQuery Data Transfer Service Account"
+  description  = "Service account for BigQuery scheduled queries"
+  project      = var.project_id
+}
+
+# Grant BigQuery permissions to the Data Transfer SA
+resource "google_project_iam_member" "data_transfer_bq_admin" {
+  count = var.enable_taxi_transfer ? 1 : 0
+
+  project = var.project_id
+  role    = "roles/bigquery.admin"
+  member  = "serviceAccount:${google_service_account.data_transfer[0].email}"
+}
+
+# ==============================================================================
+# BigQuery Data Transfer - Chicago Taxi Trips (US → EU)
+# ==============================================================================
+# Este scheduled query extrae datos del dataset público de Chicago (US)
+# y los carga en nuestro dataset raw_data (EU)
+# ------------------------------------------------------------------------------
+resource "google_bigquery_data_transfer_config" "taxi_transfer" {
+  count = var.enable_taxi_transfer ? 1 : 0
+
+  display_name           = "Chicago Taxi Data Transfer"
+  project                = var.project_id
+  location               = var.location
+  data_source_id         = "scheduled_query"
+  schedule               = var.taxi_transfer_schedule
+  destination_dataset_id = google_bigquery_dataset.raw_data.dataset_id
+  service_account_name   = google_service_account.data_transfer[0].email
+
+  params = {
+    destination_table_name_template = "taxi_trips"
+    write_disposition               = "WRITE_TRUNCATE"
+    query                           = <<-EOQ
+      SELECT
+        unique_key,
+        taxi_id,
+        trip_start_timestamp,
+        trip_end_timestamp,
+        trip_seconds,
+        trip_miles,
+        pickup_community_area,
+        dropoff_community_area,
+        fare,
+        tips,
+        tolls,
+        extras,
+        trip_total,
+        payment_type,
+        company,
+        pickup_latitude,
+        pickup_longitude,
+        dropoff_latitude,
+        dropoff_longitude,
+        CURRENT_TIMESTAMP() as loaded_at
+      FROM `bigquery-public-data.chicago_taxi_trips.taxi_trips`
+      WHERE trip_start_timestamp >= '${var.taxi_data_start_date}'
+        AND trip_start_timestamp < '${var.taxi_data_end_date}'
+      ${var.taxi_row_limit > 0 ? "LIMIT ${var.taxi_row_limit}" : ""}
+    EOQ
+  }
+
+  depends_on = [
+    google_bigquery_table.taxi_trips,
+    google_project_iam_member.data_transfer_bq_admin
+  ]
+}
