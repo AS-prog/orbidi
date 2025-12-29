@@ -79,7 +79,7 @@ module "bigquery" {
 }
 
 # ------------------------------------------------------------------------------
-# Module: Cloud Functions (Weather Ingestion)
+# Module: Cloud Functions (Weather & Taxis Ingestion)
 # ------------------------------------------------------------------------------
 module "cloud_functions" {
   source = "../../modules/cloud_functions"
@@ -94,9 +94,16 @@ module "cloud_functions" {
   weather_function_memory  = "512M"
   weather_function_timeout = 300
 
-  # Environment variables
+  # Environment variables for weather
   weather_start_date = "2023-06-01"
   weather_end_date   = "2023-12-31"
+
+  # Taxis function configuration
+  taxis_function_source_dir = "${path.module}/../../../src/ingest_taxis"
+  taxis_function_name       = "ingest-taxis"
+  taxis_function_memory     = "1Gi"
+  taxis_function_timeout    = 540
+  taxis_offset_days         = "730"  # 2025-12-29 - 730 = 2023-12-29
 
   depends_on = [
     google_project_service.apis,
@@ -131,8 +138,35 @@ resource "google_bigquery_table" "weather_external" {
   depends_on = [module.cloud_functions]
 }
 
+# ------------------------------------------------------------------------------
+# BigQuery External Table: taxi_trips (reads from Parquet in GCS with Hive partitioning)
+# ------------------------------------------------------------------------------
+resource "google_bigquery_table" "taxis_external" {
+  dataset_id          = module.bigquery.raw_data_dataset_id
+  table_id            = "taxi_trips_ext"
+  project             = var.project_id
+  deletion_protection = false
+  description         = "External table reading taxi trips data from Parquet with Hive-style daily partitioning"
+
+  external_data_configuration {
+    autodetect    = true
+    source_format = "PARQUET"
+    source_uris   = ["gs://${module.cloud_functions.data_landing_bucket}/taxis/*"]
+
+    hive_partitioning_options {
+      mode                     = "AUTO"
+      source_uri_prefix        = "gs://${module.cloud_functions.data_landing_bucket}/taxis/"
+      require_partition_filter = false
+    }
+  }
+
+  labels = local.labels
+
+  depends_on = [module.cloud_functions]
+}
+
 # ==============================================================================
-# Module: Cloud Scheduler (Weather Ingestion Daily)
+# Module: Cloud Scheduler (Weather & Taxis Ingestion Daily)
 # ==============================================================================
 module "cloud_scheduler" {
   source = "../../modules/cloud_scheduler"
@@ -140,12 +174,19 @@ module "cloud_scheduler" {
   project_id = var.project_id
   region     = var.region
 
-  # Job configuration
+  # Weather job configuration
   weather_job_name     = "trigger-weather-ingestion"
-  weather_schedule     = "0 3 * * *"  # Daily at 3 AM Madrid time
+  weather_schedule     = "0 3 * * *"  # Daily at 3:00 AM Madrid time
   weather_timezone     = "Europe/Madrid"
   weather_function_uri = module.cloud_functions.function_uri
   weather_function_sa  = module.cloud_functions.function_service_account
+
+  # Taxis job configuration
+  taxis_job_name     = "trigger-taxis-ingestion"
+  taxis_schedule     = "5 3 * * *"  # Daily at 3:05 AM Madrid time (5 min after weather)
+  taxis_timezone     = "Europe/Madrid"
+  taxis_function_uri = module.cloud_functions.taxis_function_uri
+  taxis_function_sa  = module.cloud_functions.function_service_account
 
   depends_on = [
     google_project_service.apis,
