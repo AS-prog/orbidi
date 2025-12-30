@@ -82,6 +82,19 @@ output "scheduler_timezone" {
 }
 
 # ==============================================================================
+# Data Security (Column-Level Security)
+# ==============================================================================
+output "taxonomy_id" {
+  description = "Data Catalog Taxonomy ID"
+  value       = module.data_security.taxonomy_id
+}
+
+output "payment_policy_tag" {
+  description = "Policy Tag for payment_type column"
+  value       = module.data_security.payment_policy_tag_name
+}
+
+# ==============================================================================
 # PASO 4: IAM - Descomentar cuando se habilite el módulo
 # ==============================================================================
 # output "cloud_functions_sa" {

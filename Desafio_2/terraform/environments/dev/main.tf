@@ -56,6 +56,9 @@ resource "google_project_service" "apis" {
     "artifactregistry.googleapis.com",
     # Cloud Scheduler
     "cloudscheduler.googleapis.com",
+    # Data Catalog (Column-Level Security)
+    "datacatalog.googleapis.com",
+    "bigquerydatapolicy.googleapis.com",
   ])
 
   project                    = var.project_id
@@ -219,8 +222,42 @@ module "cloud_scheduler" {
 }
 
 # ==============================================================================
-# PASO 4: IAM
-# Descomentar cuando se complete el Paso 3
+# Module: Data Security (Column-Level Security)
+# ==============================================================================
+module "data_security" {
+  source = "../../modules/data_security"
+
+  project_id        = var.project_id
+  region            = var.region
+  bigquery_location = var.bigquery_location
+  taxonomy_name     = "orbidi_sensitive_data"
+
+  # Usuarios/grupos que pueden ver la columna payment_type
+  # Formato: user:email@example.com, group:group@example.com, serviceAccount:sa@project.iam.gserviceaccount.com
+  payment_data_readers = var.payment_data_readers
+
+  # Habilitar enmascaramiento de datos (opcional)
+  enable_data_masking = var.enable_payment_masking
+
+  depends_on = [google_project_service.apis]
+}
+
+# ------------------------------------------------------------------------------
+# NOTA: Policy Tag para payment_type en analytics.taxis_weather_enriched
+# ------------------------------------------------------------------------------
+# La tabla es creada por dbt, por lo que el policy tag debe aplicarse después
+# de cada ejecución de dbt run. Usar el script:
+#   scripts/apply_policy_tags.sh
+#
+# O ejecutar manualmente:
+#   POLICY_TAG=$(terraform output -raw payment_policy_tag)
+#   bq show --format=prettyjson --schema PROJECT:analytics.taxis_weather_enriched > /tmp/schema.json
+#   # Modificar schema.json para agregar policyTags a payment_type
+#   bq update PROJECT:analytics.taxis_weather_enriched /tmp/schema.json
+# ------------------------------------------------------------------------------
+
+# ==============================================================================
+# PASO 4: IAM (Legacy - Usar data_security module en su lugar)
 # ==============================================================================
 # module "iam" {
 #   source = "../../modules/iam"
