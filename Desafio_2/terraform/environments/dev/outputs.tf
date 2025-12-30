@@ -95,14 +95,14 @@ output "payment_policy_tag" {
 }
 
 # ==============================================================================
-# PASO 4: IAM - Descomentar cuando se habilite el módulo
+# CI/CD - GitHub Actions
 # ==============================================================================
-# output "cloud_functions_sa" {
-#   description = "Cloud Functions service account email"
-#   value       = module.iam.cloud_functions_sa_email
-# }
-#
-# output "looker_studio_sa" {
-#   description = "Looker Studio service account email"
-#   value       = module.iam.looker_studio_sa_email
-# }
+output "github_actions_sa_email" {
+  description = "Email of the GitHub Actions service account"
+  value       = module.cicd.service_account_email
+}
+
+output "github_actions_key_path" {
+  description = "Path to the GitHub Actions service account key file"
+  value       = module.cicd.key_file_path
+}

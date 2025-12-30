@@ -35,8 +35,24 @@ variable "payment_data_readers" {
   default     = []
 }
 
+variable "bigquery_data_viewers" {
+  description = "List of IAM members who can query BigQuery but NOT protected columns (e.g., user:email@example.com)"
+  type        = list(string)
+  default     = []
+}
+
 variable "enable_payment_masking" {
   description = "Enable data masking for payment_type column (users without access see masked values)"
   type        = bool
   default     = false
+}
+
+# ==============================================================================
+# CI/CD Variables
+# ==============================================================================
+
+variable "create_github_actions_key" {
+  description = "Whether to create and export the GitHub Actions service account key"
+  type        = bool
+  default     = true
 }
