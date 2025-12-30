@@ -14,7 +14,9 @@ payment_data_readers = [
 
 # Usuarios con acceso GENERAL (pueden consultar pero NO ven payment_type)
 bigquery_data_viewers = [
-  "user:estefaniacanon@gmail.com"
+  "user:estefaniacanon@gmail.com",
+  "user:cristina.delpuerto@orbidi.com",
+  "user:felipe.bereilh@orbidi.com"
 ]
 
 # Enmascaramiento de datos (opcional)
