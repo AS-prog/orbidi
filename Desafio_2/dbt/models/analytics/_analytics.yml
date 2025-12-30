@@ -19,3 +19,40 @@ models:
         description: "Whether adverse weather conditions existed"
       - name: is_valid_trip
         description: "Whether trip has valid complete data"
+
+  - name: vw_trips_weather_summary
+    description: >
+      Vista agregada para Looker Studio que responde la pregunta del alcalde:
+      "¿Afectan las condiciones climáticas a la duración de los viajes en taxi?"
+      Agrupa viajes por fecha, momento del día y condiciones climáticas.
+    columns:
+      - name: date
+        description: "Fecha del viaje"
+      - name: day_of_week
+        description: "Día de la semana (1=Domingo, 7=Sábado)"
+      - name: day_type
+        description: "Tipo de día: weekday o weekend"
+      - name: time_of_day
+        description: "Momento del día: morning, afternoon, evening, night"
+      - name: temperature_category
+        description: "Categoría de temperatura: freezing, cold, mild, warm, hot"
+      - name: precipitation_category
+        description: "Categoría de lluvia: dry, light_rain, moderate_rain, heavy_rain"
+      - name: adverse_conditions
+        description: "Si hubo condiciones climáticas adversas"
+      - name: total_trips
+        description: "Número total de viajes"
+      - name: avg_duration_min
+        description: "Duración promedio del viaje en minutos"
+      - name: median_duration_min
+        description: "Mediana de duración en minutos"
+      - name: avg_distance_miles
+        description: "Distancia promedio en millas"
+      - name: avg_speed_mph
+        description: "Velocidad promedio en mph"
+      - name: avg_fare
+        description: "Tarifa promedio"
+      - name: total_revenue
+        description: "Ingresos totales"
+      - name: avg_tip_pct
+        description: "Porcentaje de propina promedio"
