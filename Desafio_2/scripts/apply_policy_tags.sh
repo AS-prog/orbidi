@@ -11,12 +11,21 @@ DATASET="analytics"
 TABLE="taxis_weather_enriched"
 COLUMN="payment_type"
 
-# Obtener el policy tag desde terraform output
-cd "$(dirname "$0")/../terraform/environments/dev"
-POLICY_TAG=$(terraform output -raw payment_policy_tag 2>/dev/null)
+# Obtener el policy tag desde variable de entorno o terraform output
+if [ -n "$PAYMENT_POLICY_TAG" ]; then
+    POLICY_TAG="$PAYMENT_POLICY_TAG"
+    echo "Usando policy tag desde variable de entorno"
+elif command -v terraform &> /dev/null; then
+    cd "$(dirname "$0")/../terraform/environments/dev"
+    POLICY_TAG=$(terraform output -raw payment_policy_tag 2>/dev/null)
+    echo "Usando policy tag desde terraform output"
+else
+    echo "Advertencia: PAYMENT_POLICY_TAG no definido y terraform no disponible. Saltando aplicación de policy tags."
+    exit 0
+fi
 
 if [ -z "$POLICY_TAG" ]; then
-    echo "Error: No se pudo obtener el policy tag. Ejecuta 'terraform apply' primero."
+    echo "Error: No se pudo obtener el policy tag."
     exit 1
 fi
 
