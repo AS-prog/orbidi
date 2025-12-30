@@ -31,6 +31,18 @@ variable "payment_data_readers" {
   default     = []
 }
 
+variable "bigquery_data_viewers" {
+  description = "List of IAM members who can query BigQuery datasets but NOT protected columns (e.g., user:email@example.com)"
+  type        = list(string)
+  default     = []
+}
+
+variable "bigquery_daily_quota_gb" {
+  description = "Daily BigQuery query quota in GB for data viewers (default: 2GB)"
+  type        = number
+  default     = 2
+}
+
 variable "enable_data_masking" {
   description = "Enable data masking policy for payment_type column"
   type        = bool

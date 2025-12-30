@@ -12,6 +12,14 @@ terraform {
       source  = "hashicorp/google"
       version = "~> 5.0"
     }
+    null = {
+      source  = "hashicorp/null"
+      version = "~> 3.0"
+    }
+    local = {
+      source  = "hashicorp/local"
+      version = "~> 2.0"
+    }
   }
 
   # Uncomment to use GCS backend for state
@@ -232,9 +240,11 @@ module "data_security" {
   bigquery_location = var.bigquery_location
   taxonomy_name     = "orbidi_sensitive_data"
 
-  # Usuarios/grupos que pueden ver la columna payment_type
-  # Formato: user:email@example.com, group:group@example.com, serviceAccount:sa@project.iam.gserviceaccount.com
+  # Usuarios que pueden ver la columna payment_type
   payment_data_readers = var.payment_data_readers
+
+  # Usuarios con acceso general a BigQuery (sin columnas protegidas)
+  bigquery_data_viewers = var.bigquery_data_viewers
 
   # Habilitar enmascaramiento de datos (opcional)
   enable_data_masking = var.enable_payment_masking
@@ -257,12 +267,15 @@ module "data_security" {
 # ------------------------------------------------------------------------------
 
 # ==============================================================================
-# PASO 4: IAM (Legacy - Usar data_security module en su lugar)
+# Module: CI/CD (GitHub Actions Service Account)
 # ==============================================================================
-# module "iam" {
-#   source = "../../modules/iam"
-#
-#   project_id = var.project_id
-#
-#   depends_on = [google_project_service.apis]
-# }
+module "cicd" {
+  source = "../../modules/cicd"
+
+  project_id         = var.project_id
+  service_account_id = "github-actions-sa"
+  create_key         = var.create_github_actions_key
+  key_output_path    = "${path.module}/github-actions-key.json"
+
+  depends_on = [google_project_service.apis]
+}

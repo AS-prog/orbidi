@@ -1,0 +1,70 @@
+# ==============================================================================
+# Cloud Build - dbt Run Configuration
+# ==============================================================================
+# Ejecuta dbt run + test + apply policy tags
+# Trigger: Cloud Scheduler (post-ingesta) o manual
+# ==============================================================================
+
+steps:
+  # Step 1: Install uv and dependencies
+  - name: 'python:3.11-slim'
+    id: 'install-deps'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        pip install uv
+        uv sync
+    dir: 'dbt'
+
+  # Step 2: dbt debug (verify connection)
+  - name: 'python:3.11-slim'
+    id: 'dbt-debug'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        pip install uv
+        cd dbt && uv run dbt debug --profiles-dir .
+    waitFor: ['install-deps']
+
+  # Step 3: dbt run (incremental)
+  - name: 'python:3.11-slim'
+    id: 'dbt-run'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        pip install uv
+        cd dbt && uv run dbt run --profiles-dir .
+    waitFor: ['dbt-debug']
+
+  # Step 4: dbt test
+  - name: 'python:3.11-slim'
+    id: 'dbt-test'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        pip install uv
+        cd dbt && uv run dbt test --profiles-dir .
+    waitFor: ['dbt-run']
+
+  # Step 5: Apply policy tags (post-dbt)
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk:slim'
+    id: 'apply-policy-tags'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        chmod +x scripts/apply_policy_tags.sh
+        ./scripts/apply_policy_tags.sh || echo "Policy tags may need manual application"
+    waitFor: ['dbt-test']
+
+options:
+  logging: CLOUD_LOGGING_ONLY
+
+timeout: '1800s'  # 30 minutos máximo
+
+substitutions:
+  _DBT_TARGET: 'dev'

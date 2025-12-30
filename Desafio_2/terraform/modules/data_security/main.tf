@@ -55,3 +55,78 @@ resource "google_bigquery_datapolicy_data_policy" "payment_masking" {
     predefined_expression = "DEFAULT_MASKING_VALUE"
   }
 }
+
+# ------------------------------------------------------------------------------
+# IAM: BigQuery Data Viewers (acceso general sin columnas protegidas)
+# ------------------------------------------------------------------------------
+
+# Job User - permite ejecutar queries
+resource "google_project_iam_member" "bigquery_job_user" {
+  for_each = toset(var.bigquery_data_viewers)
+
+  project = var.project_id
+  role    = "roles/bigquery.jobUser"
+  member  = each.value
+}
+
+# Data Viewer en analytics dataset
+resource "google_bigquery_dataset_iam_member" "analytics_viewer" {
+  for_each = toset(var.bigquery_data_viewers)
+
+  project    = var.project_id
+  dataset_id = "analytics"
+  role       = "roles/bigquery.dataViewer"
+  member     = each.value
+}
+
+# Data Viewer en silver_data dataset
+resource "google_bigquery_dataset_iam_member" "silver_viewer" {
+  for_each = toset(var.bigquery_data_viewers)
+
+  project    = var.project_id
+  dataset_id = "silver_data"
+  role       = "roles/bigquery.dataViewer"
+  member     = each.value
+}
+
+# ------------------------------------------------------------------------------
+# BigQuery Per-User Quotas (2GB/día por defecto)
+# ------------------------------------------------------------------------------
+# NOTA: Las cuotas por usuario se configuran via gcloud.
+# Este recurso ejecuta el comando para establecer el límite.
+# ------------------------------------------------------------------------------
+
+locals {
+  # Convertir GB a bytes (2GB = 2 * 1024^3 = 2147483648 bytes)
+  quota_bytes = var.bigquery_daily_quota_gb * 1024 * 1024 * 1024
+
+  # Extraer emails de los members (quitar prefijo "user:")
+  viewer_emails = [
+    for member in var.bigquery_data_viewers :
+    trimprefix(member, "user:")
+    if startswith(member, "user:")
+  ]
+}
+
+resource "null_resource" "bigquery_user_quotas" {
+  for_each = toset(local.viewer_emails)
+
+  triggers = {
+    user_email  = each.value
+    quota_bytes = local.quota_bytes
+    project_id  = var.project_id
+  }
+
+  provisioner "local-exec" {
+    command = <<-EOT
+      echo "Configurando cuota de ${var.bigquery_daily_quota_gb}GB/día para ${each.value}..."
+      gcloud alpha bq update-per-user-quota \
+        --project=${var.project_id} \
+        --user=${each.value} \
+        --custom-quota=${local.quota_bytes} \
+        2>/dev/null || echo "NOTA: Requiere gcloud alpha. Ejecutar manualmente si falla."
+    EOT
+  }
+
+  depends_on = [google_project_iam_member.bigquery_job_user]
+}

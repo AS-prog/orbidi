@@ -6,8 +6,11 @@ data/
 *.tfstate.*
 .terraform/
 .terraform.lock.hcl
-*.tfvars
-!*.tfvars.example
+
+# GCP Service Account Keys (NEVER commit these!)
+*-key.json
+*-credentials.json
+service-account*.json
 
 # Python
 __pycache__/

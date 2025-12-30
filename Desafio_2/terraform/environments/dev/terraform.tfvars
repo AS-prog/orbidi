@@ -3,8 +3,24 @@ region            = "europe-west1"   # Cambiamos Madrid por Bélgica para compat
 bigquery_location = "EU"
 weather_schedule  = "0 2 * * *"
 
-# Data Security - Column-Level Access Control
+# ==============================================================================
+# Data Security - Access Control
+# ==============================================================================
+
+# Usuarios con acceso COMPLETO (incluye payment_type)
 payment_data_readers = [
-  "user:andresrsotelo@gmail.com"  # Usuario con acceso a columna payment_type
+  "user:andresrsotelo@gmail.com"
 ]
-enable_payment_masking = false  # Cambiar a true para enmascarar datos a usuarios sin acceso
+
+# Usuarios con acceso GENERAL (pueden consultar pero NO ven payment_type)
+bigquery_data_viewers = [
+  "user:estefaniacanon@gmail.com"
+]
+
+# Enmascaramiento de datos (opcional)
+enable_payment_masking = false
+
+# ==============================================================================
+# CI/CD - GitHub Actions
+# ==============================================================================
+create_github_actions_key = true  # Genera archivo github-actions-key.json

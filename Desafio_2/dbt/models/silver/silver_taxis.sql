@@ -1,21 +1,29 @@
 -- Silver layer: Curated taxi trips data
 -- Dataset: silver_data
--- Materialización: table
+-- Materialización: incremental (insert_overwrite por partición)
 
 {{
     config(
-        materialized='table',
+        materialized='incremental',
+        incremental_strategy='insert_overwrite',
         partition_by={
             "field": "date",
             "data_type": "date",
             "granularity": "day"
         },
-        cluster_by=["pickup_community_area", "payment_type"]
+        cluster_by=["pickup_community_area", "payment_type"],
+        on_schema_change='append_new_columns'
     )
 }}
 
 with stg_taxis as (
     select * from {{ ref('stg_taxis') }}
+    {% if is_incremental() %}
+    -- En ejecuciones incrementales, solo procesar datos nuevos
+    where cast(trip_start_timestamp as date) > (
+        select coalesce(max(date), '1900-01-01') from {{ this }}
+    )
+    {% endif %}
 ),
 
 transformed as (

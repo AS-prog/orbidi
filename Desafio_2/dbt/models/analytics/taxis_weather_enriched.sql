@@ -1,21 +1,26 @@
 -- Analytics layer: Taxi trips enriched with weather data
 -- Dataset: analytics
--- Materialización: table
+-- Materialización: incremental (insert_overwrite por partición)
 
 {{
     config(
-        materialized='table',
+        materialized='incremental',
+        incremental_strategy='insert_overwrite',
         partition_by={
             "field": "date",
             "data_type": "date",
             "granularity": "day"
         },
-        cluster_by=["pickup_community_area", "temperature_category"]
+        cluster_by=["pickup_community_area", "temperature_category"],
+        on_schema_change='append_new_columns'
     )
 }}
 
 with silver_taxis as (
     select * from {{ ref('silver_taxis') }}
+    {% if is_incremental() %}
+    where date > (select coalesce(max(date), '1900-01-01') from {{ this }})
+    {% endif %}
 ),
 
 silver_weather as (
