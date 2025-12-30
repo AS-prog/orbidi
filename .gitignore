@@ -19,3 +19,9 @@ dbt_project/dbt_packages/
 .DS_Store
 .vscode/
 .idea/
+
+
+#Desafio_2/terraform/
+Desafio_2/plan.md
+Desafio_1/docs/sources/orbidi_technical_challenge.md
+Desafio_1/docs/sources/guia_entrevista_tecnica_v2.md
