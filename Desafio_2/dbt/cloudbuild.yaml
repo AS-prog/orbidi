@@ -15,7 +15,7 @@ steps:
       - |
         pip install uv
         uv sync
-    dir: 'dbt'
+    dir: 'Desafio_2/dbt'
 
   # Step 2: dbt debug (verify connection)
   - name: 'python:3.11-slim'
@@ -25,7 +25,8 @@ steps:
       - '-c'
       - |
         pip install uv
-        cd dbt && uv run dbt debug --profiles-dir .
+        uv run dbt debug --profiles-dir .
+    dir: 'Desafio_2/dbt'
     waitFor: ['install-deps']
 
   # Step 3: dbt run (incremental)
@@ -36,7 +37,8 @@ steps:
       - '-c'
       - |
         pip install uv
-        cd dbt && uv run dbt run --profiles-dir .
+        uv run dbt run --profiles-dir .
+    dir: 'Desafio_2/dbt'
     waitFor: ['dbt-debug']
 
   # Step 4: dbt test
@@ -47,7 +49,8 @@ steps:
       - '-c'
       - |
         pip install uv
-        cd dbt && uv run dbt test --profiles-dir .
+        uv run dbt test --profiles-dir .
+    dir: 'Desafio_2/dbt'
     waitFor: ['dbt-run']
 
   # Step 5: Apply policy tags (post-dbt)
@@ -57,8 +60,8 @@ steps:
     args:
       - '-c'
       - |
-        chmod +x scripts/apply_policy_tags.sh
-        ./scripts/apply_policy_tags.sh || echo "Policy tags may need manual application"
+        chmod +x Desafio_2/scripts/apply_policy_tags.sh
+        cd Desafio_2/scripts && ./apply_policy_tags.sh || echo "Policy tags skipped (requires terraform)"
     waitFor: ['dbt-test']
 
 options:

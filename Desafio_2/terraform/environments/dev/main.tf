@@ -279,3 +279,22 @@ module "cicd" {
 
   depends_on = [google_project_service.apis]
 }
+
+# ==============================================================================
+# Module: Cloud Build (dbt Automation)
+# ==============================================================================
+module "cloud_build" {
+  source = "../../modules/cloud_build"
+
+  project_id       = var.project_id
+  region           = var.region
+  scheduler_region = var.region
+  github_repo_url  = var.github_repo_url
+  dbt_schedule     = var.dbt_schedule
+  timezone         = "Europe/Madrid"
+
+  depends_on = [
+    google_project_service.apis,
+    module.cloud_scheduler
+  ]
+}

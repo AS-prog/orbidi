@@ -106,3 +106,21 @@ output "github_actions_key_path" {
   description = "Path to the GitHub Actions service account key file"
   value       = module.cicd.key_file_path
 }
+
+# ==============================================================================
+# Cloud Build - dbt Automation
+# ==============================================================================
+output "dbt_trigger_id" {
+  description = "ID del Cloud Build trigger para dbt"
+  value       = module.cloud_build.trigger_id
+}
+
+output "dbt_scheduler_job" {
+  description = "Nombre del Cloud Scheduler job para dbt"
+  value       = module.cloud_build.scheduler_job_name
+}
+
+output "dbt_service_account" {
+  description = "Service Account usado por Cloud Build para dbt"
+  value       = module.cloud_build.service_account_email
+}
