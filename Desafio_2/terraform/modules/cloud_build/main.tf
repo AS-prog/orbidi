@@ -61,9 +61,6 @@ resource "google_cloudbuild_trigger" "dbt_run" {
   }
 
   service_account = google_service_account.cloud_build_dbt.id
-
-  # Permitir ejecución manual y via API
-  include_build_logs = "INCLUDE_BUILD_LOGS_WITH_STATUS"
 }
 
 # ------------------------------------------------------------------------------
