@@ -56,3 +56,19 @@ variable "create_github_actions_key" {
   type        = bool
   default     = true
 }
+
+# ==============================================================================
+# Cloud Build / dbt Automation Variables
+# ==============================================================================
+
+variable "github_repo_url" {
+  description = "URL del repositorio GitHub para Cloud Build"
+  type        = string
+  default     = "https://github.com/AS-prog/orbidi"
+}
+
+variable "dbt_schedule" {
+  description = "Cron schedule para dbt (después de ingesta). Default: 4:00 AM (1h después de taxis)"
+  type        = string
+  default     = "0 4 * * *"
+}
