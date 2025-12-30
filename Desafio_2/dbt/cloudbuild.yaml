@@ -13,47 +13,38 @@ steps:
     args:
       - '-c'
       - |
+        apt-get update && apt-get install -y git
         pip install uv
         uv sync
     dir: 'Desafio_2/dbt'
 
-  # Step 2: dbt debug (verify connection)
-  - name: 'python:3.11-slim'
-    id: 'dbt-debug'
-    entrypoint: 'bash'
-    args:
-      - '-c'
-      - |
-        pip install uv
-        uv run dbt debug --profiles-dir .
-    dir: 'Desafio_2/dbt'
-    waitFor: ['install-deps']
-
-  # Step 3: dbt run (incremental)
+  # Step 2: dbt run (incremental)
   - name: 'python:3.11-slim'
     id: 'dbt-run'
     entrypoint: 'bash'
     args:
       - '-c'
       - |
+        apt-get update && apt-get install -y git
         pip install uv
         uv run dbt run --profiles-dir .
     dir: 'Desafio_2/dbt'
-    waitFor: ['dbt-debug']
+    waitFor: ['install-deps']
 
-  # Step 4: dbt test
+  # Step 3: dbt test
   - name: 'python:3.11-slim'
     id: 'dbt-test'
     entrypoint: 'bash'
     args:
       - '-c'
       - |
+        apt-get update && apt-get install -y git
         pip install uv
         uv run dbt test --profiles-dir .
     dir: 'Desafio_2/dbt'
     waitFor: ['dbt-run']
 
-  # Step 5: Apply policy tags (post-dbt)
+  # Step 4: Apply policy tags (post-dbt)
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk:slim'
     id: 'apply-policy-tags'
     entrypoint: 'bash'
@@ -68,6 +59,3 @@ options:
   logging: CLOUD_LOGGING_ONLY
 
 timeout: '1800s'  # 30 minutos máximo
-
-substitutions:
-  _DBT_TARGET: 'dev'
