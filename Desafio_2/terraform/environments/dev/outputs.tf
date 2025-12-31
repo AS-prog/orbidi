@@ -20,16 +20,6 @@ output "analytics_dataset" {
   value       = module.bigquery.analytics_dataset_id
 }
 
-output "taxi_trips_table" {
-  description = "Full table ID for taxi trips"
-  value       = module.bigquery.taxi_trips_table_id
-}
-
-output "weather_daily_table" {
-  description = "Full table ID for weather data"
-  value       = module.bigquery.weather_daily_table_id
-}
-
 # ==============================================================================
 # Cloud Functions
 # ==============================================================================
