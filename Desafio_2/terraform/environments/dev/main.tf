@@ -108,15 +108,16 @@ module "cloud_functions" {
   weather_function_timeout = 300
 
   # Environment variables for weather
-  weather_start_date = "2023-06-01"
-  weather_end_date   = "2023-12-31"
+  weather_start_date   = "2023-06-01"
+  weather_end_date     = "2023-12-31"
+  weather_offset_days  = "738"  # 2025-12-31 - 738 = 2023-12-24
 
   # Taxis function configuration
   taxis_function_source_dir = "${path.module}/../../../src/ingest_taxis"
   taxis_function_name       = "ingest-taxis"
   taxis_function_memory     = "1Gi"
   taxis_function_timeout    = 540
-  taxis_offset_days         = "730"  # 2025-12-29 - 730 = 2023-12-29
+  taxis_offset_days         = "738"  # 2025-12-31 - 738 = 2023-12-24
 
   depends_on = [
     google_project_service.apis,

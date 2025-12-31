@@ -137,6 +137,7 @@ resource "google_cloudfunctions2_function" "ingest_weather" {
       GCS_BUCKET           = google_storage_bucket.data_landing.name
       WEATHER_START_DATE   = var.weather_start_date
       WEATHER_END_DATE     = var.weather_end_date
+      OFFSET_DAYS          = var.weather_offset_days
     }
   }
 

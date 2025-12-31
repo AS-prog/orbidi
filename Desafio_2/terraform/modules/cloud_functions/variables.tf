@@ -99,9 +99,15 @@ variable "taxis_function_max_instances" {
 }
 
 variable "taxis_offset_days" {
-  description = "Offset days for taxis daily ingestion (e.g., 730 means process date from ~2 years ago for 2023 data)"
+  description = "Offset days for taxis daily ingestion (e.g., 738 means process date from ~2 years ago for 2023 data)"
   type        = string
-  default     = "730"
+  default     = "738"
+}
+
+variable "weather_offset_days" {
+  description = "Offset days for weather daily ingestion (e.g., 738 means process date from ~2 years ago for 2023 data)"
+  type        = string
+  default     = "738"
 }
 
 # ------------------------------------------------------------------------------
