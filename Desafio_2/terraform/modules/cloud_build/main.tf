@@ -38,9 +38,19 @@ resource "google_project_iam_member" "cloud_build_act_as" {
   member  = "serviceAccount:${google_service_account.cloud_build_dbt.email}"
 }
 
+resource "google_project_iam_member" "cloud_build_editor" {
+  project = var.project_id
+  role    = "roles/cloudbuild.builds.editor"
+  member  = "serviceAccount:${google_service_account.cloud_build_dbt.email}"
+}
+
 # ------------------------------------------------------------------------------
-# Cloud Build Trigger (Manual/HTTP)
+# Cloud Build Trigger (Manual/HTTP) - Usando GitHub Connection
 # ------------------------------------------------------------------------------
+locals {
+  repository_id = "projects/${var.project_id}/locations/${var.region}/connections/${var.github_connection_name}/repositories/${var.github_repository_name}"
+}
+
 resource "google_cloudbuild_trigger" "dbt_run" {
   name        = "dbt-run-trigger"
   project     = var.project_id
@@ -48,16 +58,16 @@ resource "google_cloudbuild_trigger" "dbt_run" {
   description = "Ejecuta dbt run después de la ingesta de datos"
 
   source_to_build {
-    uri       = var.github_repo_url
-    ref       = "refs/heads/main"
-    repo_type = "GITHUB"
+    repository = local.repository_id
+    ref        = "refs/heads/main"
+    repo_type  = "GITHUB"
   }
 
   git_file_source {
-    path      = "Desafio_2/dbt/cloudbuild.yaml"
-    uri       = var.github_repo_url
-    revision  = "refs/heads/main"
-    repo_type = "GITHUB"
+    path       = "Desafio_2/dbt/cloudbuild.yaml"
+    repository = local.repository_id
+    revision   = "refs/heads/main"
+    repo_type  = "GITHUB"
   }
 
   service_account = google_service_account.cloud_build_dbt.id
@@ -97,9 +107,8 @@ resource "google_cloud_scheduler_job" "dbt_trigger" {
       "Content-Type" = "application/json"
     }
 
-    body = base64encode(jsonencode({
-      branchName = "main"
-    }))
+    # Body vacío - el trigger 2nd gen ya tiene toda la configuración
+    body = base64encode("{}")
   }
 
   depends_on = [google_cloudbuild_trigger.dbt_run]

@@ -67,6 +67,8 @@ resource "google_project_service" "apis" {
     # Data Catalog (Column-Level Security)
     "datacatalog.googleapis.com",
     "bigquerydatapolicy.googleapis.com",
+    # Secret Manager (para GitHub Connection en Cloud Build)
+    "secretmanager.googleapis.com",
   ])
 
   project                    = var.project_id

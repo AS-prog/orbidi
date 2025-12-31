@@ -24,6 +24,18 @@ variable "github_repo_url" {
   type        = string
 }
 
+variable "github_connection_name" {
+  description = "Nombre de la conexión GitHub en Cloud Build"
+  type        = string
+  default     = "github-connection"
+}
+
+variable "github_repository_name" {
+  description = "Nombre del repositorio vinculado en Cloud Build"
+  type        = string
+  default     = "orbidi-repo"
+}
+
 variable "dbt_schedule" {
   description = "Cron schedule para dbt (después de ingesta)"
   type        = string
